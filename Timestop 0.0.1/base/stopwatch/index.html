@@ -3,9 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>TimeStop 0.1.0 - Stopwatch</title>
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/general.css">
+    <link rel="stylesheet" href="/assets/css/stopwatch.css">
+    <script src="/assets/js/stopwatch.js"></script>
 </head>
 <body>
-    
+    <div class="containerHead">
+        <h2 class="bolt underlined ">TimeStop - Stopwatch</h2>
+    </div>
+    <br><br><br><br>
+    <div class="main">
+        <div class="container">
+            <div class="box">
+                <div id="display" class="display">00:00:00.000</div>
+                <br>
+                <button class="btn" id="startBtn" onclick="startStopwatch()">Start</button>
+                <button class="btn" id="stopBtn" onclick="stopStopwatch()">Stop</button>
+                <button class="btn" id="resetBtn" onclick="resetStopwatch()">Reset</button>
+                <button class="btn" id="lapBtn" onclick="recordLap()">Lap</button>
+                <br><br>
+                <ul id="laps" class="laps"></ul>
+            </div>
+        </div>
+    </div>
+    <br><br><br><br><br><br><br><br><br><br><br><hr><br>
+    <div class="foot">
+        <a class ="NoTextdecoration black"> Copyright © 2026 TimeStop Ltd. All  rights reserved.</a><br>
+        <a class="NoTextdecoration black" >Timestop 0.1.0</a>
+    </div>
 </body>
 </html>
