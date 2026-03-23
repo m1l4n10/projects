@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Open Road - Administration-Tools</title>
+    <link rel="stylesheet" href="assets/css/general.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <script href="assets/js/password.js"></script>
+</head>
+<body>
+    <div class="content">
+        <div class="header">
+            <img style="width: 100px; height: 100px;" src="assets/img/icon.png" alt="logo">
+            <div class="title-group">
+                <div class="title-row">
+                    <span class="heading-bold">The</span>
+                    <span class="heading">Open</span>
+                    <span class="heading-bold">Road</span>
+                </div>
+                <span class="subtitle">Administrator-Tools</span>
+            </div>
+        </div>
+        <div class="login">
+            <span class="login-title">Willkommen zurück!</span>
+            <p class="login-desc">
+                Bitte geben Sie zum Fortfahren Ihr Passwort ein und klicken Sie auf "Anmelden".
+            </p>
+ 
+            <div class="field-row">
+                <span class="field-label">Benutzername:</span>
+                <input class="field-input" type="text" id="username" placeholder="Benutzername" />
+            </div>
+ 
+            <div class="field-row">
+                <span class="field-label">Passwort:</span>
+                <input class="field-input" type="password" id="password" placeholder="••••••" />
+            </div>
+ 
+            <button class="btn-anmelden" onclick="handleLogin()">Anmelden</button>
+        </div>
+ 
+    </div>
+    <script>
+        function handleLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            if (!user || !pass) {
+                alert('Bitte Benutzername und Passwort eingeben.');
+                return;
+            }
+            alert('Anmeldung für: ' + user);
+        }
+    </script>
+</body>
+</html>
