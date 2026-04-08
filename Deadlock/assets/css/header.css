@@ -1,0 +1,20 @@
+.navbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 50px;
+    background: linear-gradient(135deg, #1a1a30 0%, #0f0f1e 100%);
+    padding: 0 20px;
+}
+
+.nav_logo {
+    
+}
+
+.heroheading {
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: none;
+}
