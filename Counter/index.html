@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <main>
+        <div class="content">
+            <div class="counter">
+                <div class="setup-panel" id="setupPanel">
+                    <p class="label">Target Date & Time</p>
+                    <input type="datetime-local" id="datetimeInput" class="datetime-input">
+                    <div class="error-msg" id="errorMsg"></div>
+                    <button class="button" id="startCountdownBtn">Start Countdown</button>
+                </div>
+
+                <div class="countdown-display" id="countdownDisplay" style="display:none">
+                    <p class="target-label" id="targetLabel"></p>
+                    <div class="timeleft">
+                        <div class="segments">
+                            <div class="segment">
+                                <span class="seg-value" id="days">00</span>
+                                <span class="seg-unit">Days</span>
+                            </div>
+                            <div class="sep">:</div>
+                            <div class="segment">
+                                <span class="seg-value" id="hours">00</span>
+                                <span class="seg-unit">Hrs</span>
+                            </div>
+                            <div class="sep">:</div>
+                            <div class="segment">
+                                <span class="seg-value" id="minutes">00</span>
+                                <span class="seg-unit">Min</span>
+                            </div>
+                            <div class="sep">:</div>
+                            <div class="segment">
+                                <span class="seg-value" id="seconds">00</span>
+                                <span class="seg-unit">Sec</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <div class="buttons">
+                        <button class="button" id="pauseBtn">Pause</button>
+                        <button class="button_disabled" id="resumeBtn" disabled>Resume</button>
+                        <button class="button" id="resetBtn">Reset</button>
+                    </div>
+                </div>
+
+                <div class="finished-display" id="finishedDisplay" style="display:none">
+                    <div class="timeleft">
+                        <div class="finished-icon">🎉</div>
+                    </div>
+                    <p class="finished-text">Time's up!</p>
+                    <button class="button" id="newCountdownBtn">New Countdown</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="assets/script.js"></script>
+</body>
+</html>
