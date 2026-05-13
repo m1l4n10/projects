@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f8f7f4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pflanzenpflege">
+<meta name="description" content="Dein persönlicher Pflanzen Gieß-Tracker">
+<title>Pflanzenpflege</title>
+<link rel="manifest" href="#" id="manifest-link">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --text: #1a1a18;
+    --text-muted: #9a9890;
+    --accent: #4a7c59;
+    --accent-light: #e8f0eb;
+    --accent-mid: #8bb89a;
+    --warn: #d4875a;
+    --warn-light: #fdf0e8;
+    --danger: #c0604a;
+    --danger-light: #fdecea;
+    --border: #ebebе8;
+    --shadow: 0 2px 16px rgba(26,26,24,0.07);
+    --shadow-lg: 0 8px 40px rgba(26,26,24,0.12);
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100dvh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ── HEADER ── */
+  .app-header {
+    padding: 56px 24px 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .app-header .back-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .app-header .back-btn:hover { background: var(--accent-light); border-color: var(--accent-mid); }
+  .app-header h2 { font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; }
+
+  /* ── HOME SCREEN ── */
+  #screen-home {
+    background: var(--bg);
+  }
+  .home-top {
+    padding: 64px 28px 32px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .home-greeting {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 7vw, 40px);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--text);
+  }
+  .home-greeting em { font-style: italic; color: var(--accent); }
+  .home-subtitle {
+    font-size: 14px; color: var(--text-muted);
+    font-weight: 300; margin-top: 6px; letter-spacing: .01em;
+  }
+  .add-fab {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent); border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(74,124,89,.35);
+    transition: all .25s; flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .add-fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(74,124,89,.45); }
+  .add-fab svg { width: 22px; height: 22px; }
+
+  .plants-list {
+    flex: 1; overflow-y: auto;
+    padding: 0 20px 40px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 32px; text-align: center; gap: 16px;
+  }
+  .empty-state svg { opacity: .18; }
+  .empty-state h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; font-weight: 400; color: var(--text-muted);
+  }
+  .empty-state p { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
+  .empty-cta {
+    margin-top: 8px;
+    padding: 14px 28px;
+    border-radius: 50px;
+    background: var(--accent); color: white;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(74,124,89,.3);
+    transition: all .2s;
+  }
+  .empty-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(74,124,89,.4); }
+
+  /* ── PLANT CARD ── */
+  .plant-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: var(--shadow);
+    transition: transform .2s, box-shadow .2s;
+    position: relative; overflow: hidden;
+    cursor: default;
+  }
+  .plant-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .plant-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--accent);
+    border-radius: 4px 0 0 4px;
+    transition: background .3s;
+  }
+  .plant-card.warn::before { background: var(--warn); }
+  .plant-card.danger::before { background: var(--danger); }
+
+  .plant-icon-wrap {
+    width: 54px; height: 54px; border-radius: 16px;
+    background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 26px;
+    transition: background .3s;
+  }
+  .plant-card.warn .plant-icon-wrap { background: var(--warn-light); }
+  .plant-card.danger .plant-icon-wrap { background: var(--danger-light); }
+
+  .plant-info { flex: 1; min-width: 0; }
+  .plant-name {
+    font-size: 16px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .plant-status {
+    font-size: 13px; color: var(--text-muted);
+    margin-top: 3px; font-weight: 300;
+  }
+  .plant-status.warn { color: var(--warn); }
+  .plant-status.danger { color: var(--danger); }
+
+  .plant-progress-ring { flex-shrink: 0; position: relative; }
+  .plant-progress-ring svg { display: block; }
+  .progress-track { fill: none; stroke: var(--border); stroke-width: 3; }
+  .progress-fill {
+    fill: none; stroke: var(--accent); stroke-width: 3;
+    stroke-linecap: round;
+    transform: rotate(-90deg); transform-origin: center;
+    transition: stroke-dashoffset .6s ease, stroke .3s;
+  }
+  .plant-card.warn .progress-fill { stroke: var(--warn); }
+  .plant-card.danger .progress-fill { stroke: var(--danger); }
+
+  .plant-actions {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .water-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--accent-light); border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .water-btn:hover { background: var(--accent); }
+  .water-btn:hover svg path { fill: white; }
+  .delete-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: transparent; border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .delete-btn:hover { background: var(--danger-light); }
+
+  /* ── ADD / EDIT SCREEN ── */
+  #screen-add { background: var(--bg); overflow-y: auto; }
+  .form-body {
+    flex: 1; padding: 0 24px 40px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+
+  .field-label {
+    font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 10px;
+  }
+
+  .input-text {
+    width: 100%; padding: 16px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 400; color: var(--text);
+    outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .input-text:focus {
+    border-color: var(--accent-mid);
+    box-shadow: 0 0 0 3px rgba(74,124,89,.08);
+  }
+  .input-text::placeholder { color: var(--text-muted); }
+
+  /* Icon picker */
+  .icon-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+    gap: 10px;
+  }
+  .icon-option {
+    aspect-ratio: 1; border-radius: 16px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer; font-size: 24px;
+    transition: all .2s; gap: 3px;
+    padding: 8px;
+  }
+  .icon-option span.icon-label {
+    font-size: 9px; color: var(--text-muted); font-weight: 400;
+    text-align: center; line-height: 1.1;
+  }
+  .icon-option:hover { border-color: var(--accent-mid); background: var(--accent-light); }
+  .icon-option.selected {
+    border-color: var(--accent); background: var(--accent-light);
+    box-shadow: 0 0 0 3px rgba(74,124,89,.12);
+  }
+
+  /* Interval picker */
+  .interval-row {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface); border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border); overflow: hidden;
+  }
+  .interval-btn {
+    width: 56px; height: 56px; border: none;
+    background: transparent; cursor: pointer;
+    font-size: 22px; color: var(--text);
+    transition: background .15s; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .interval-btn:hover { background: var(--accent-light); }
+  .interval-value {
+    flex: 1; text-align: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px; font-weight: 400;
+    pointer-events: none;
+  }
+  .interval-unit {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; color: var(--text-muted);
+    padding: 0 16px; font-weight: 300;
+    border-left: 1.5px solid var(--border);
+    height: 56px; display: flex; align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* Quick interval chips */
+  .quick-chips {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+  }
+  .chip {
+    padding: 7px 16px; border-radius: 50px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 400; cursor: pointer;
+    transition: all .2s; color: var(--text);
+  }
+  .chip:hover, .chip.active { background: var(--accent-light); border-color: var(--accent-mid); color: var(--accent); }
+
+  /* Notes */
+  .input-textarea {
+    width: 100%; padding: 16px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 300; color: var(--text);
+    outline: none; resize: vertical; min-height: 90px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .input-textarea:focus {
+    border-color: var(--accent-mid);
+    box-shadow: 0 0 0 3px rgba(74,124,89,.08);
+  }
+  .input-textarea::placeholder { color: var(--text-muted); }
+
+  /* Submit */
+  .submit-btn {
+    width: 100%; padding: 18px;
+    border-radius: var(--radius-sm);
+    background: var(--accent); color: white;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(74,124,89,.3);
+    transition: all .2s; letter-spacing: .01em;
+  }
+  .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(74,124,89,.4); }
+  .submit-btn:active { transform: translateY(0); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: white;
+    padding: 13px 22px; border-radius: 50px;
+    font-size: 14px; font-weight: 400;
+    white-space: nowrap; z-index: 999;
+    opacity: 0; transition: all .3s;
+    pointer-events: none; display: flex; align-items: center; gap: 8px;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── INSTALL BANNER ── */
+  .install-banner {
+    margin: 0 20px 12px;
+    padding: 14px 18px;
+    background: var(--accent-light);
+    border: 1.5px solid var(--accent-mid);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; gap: 12px;
+    animation: slideDown .4s ease;
+  }
+  .install-banner p { flex: 1; font-size: 13px; color: var(--accent); font-weight: 400; line-height: 1.4; }
+  .install-banner button {
+    padding: 8px 16px; border-radius: 50px;
+    background: var(--accent); color: white;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; white-space: nowrap;
+  }
+  .install-dismiss {
+    background: none !important; color: var(--text-muted) !important;
+    padding: 8px !important;
+  }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } }
+
+  /* ── SECTION LABELS ── */
+  .section-label {
+    font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--text-muted); padding: 0 4px;
+    margin-bottom: -6px;
+  }
+
+  /* ── SORT/STATS ROW ── */
+  .stats-row {
+    display: flex; gap: 10px; padding: 0 20px; margin-bottom: 2px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .stats-row::-webkit-scrollbar { display: none; }
+  .stat-chip {
+    padding: 8px 16px; border-radius: 50px;
+    background: var(--surface); border: 1.5px solid var(--border);
+    font-size: 13px; font-weight: 400; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── RESPONSIVE ── */
+  @media (min-width: 600px) {
+    .plants-list { display: grid; grid-template-columns: repeat(2, 1fr); }
+    .form-body { max-width: 560px; align-self: center; width: 100%; }
+    .home-top { padding: 72px 36px 32px; }
+  }
+  @media (min-width: 1024px) {
+    .plants-list { grid-template-columns: repeat(3, 1fr); max-width: 960px; margin: 0 auto; padding: 0 32px 60px; }
+    .home-top { max-width: 960px; margin: 0 auto; width: 100%; padding: 80px 36px 32px; }
+    .stats-row { max-width: 960px; margin: 0 auto; padding: 0 32px; margin-bottom: 2px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════ HOME SCREEN -->
+<section id="screen-home" class="screen active">
+  <div class="home-top">
+    <div>
+      <h1 class="home-greeting">Meine<br><em>Pflanzen</em></h1>
+      <p class="home-subtitle" id="home-subtitle">Alle Pflanzen auf einem Blick</p>
+    </div>
+    <button class="add-fab" onclick="openAdd()" aria-label="Pflanze hinzufügen">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="install-banner-slot"></div>
+  <div class="stats-row" id="stats-row" style="display:none"></div>
+
+  <div class="plants-list" id="plants-list">
+    <!-- empty state -->
+    <div class="empty-state" id="empty-state">
+      <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="50" cy="85" rx="22" ry="6" fill="#4a7c59" opacity=".15"/>
+        <rect x="47" y="52" width="6" height="34" rx="3" fill="#4a7c59" opacity=".3"/>
+        <path d="M50 52 C50 35 30 25 25 12 C35 16 48 30 50 52Z" fill="#4a7c59" opacity=".4"/>
+        <path d="M50 52 C50 38 65 28 72 16 C62 20 52 34 50 52Z" fill="#4a7c59" opacity=".3"/>
+        <path d="M50 65 C50 55 38 48 32 38 C40 42 50 54 50 65Z" fill="#4a7c59" opacity=".25"/>
+      </svg>
+      <h3>Noch keine Pflanzen</h3>
+      <p>Füge deine erste Pflanze hinzu und<br>vergiss das Gießen nie wieder.</p>
+      <button class="empty-cta" onclick="openAdd()">Erste Pflanze anlegen</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ ADD/EDIT SCREEN -->
+<section id="screen-add" class="screen">
+  <div class="app-header">
+    <button class="back-btn" onclick="goHome()" aria-label="Zurück">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M11 3.5L6 9l5 5.5" stroke="#1a1a18" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <h2 id="add-screen-title">Pflanze hinzufügen</h2>
+  </div>
+
+  <div class="form-body">
+    <input type="hidden" id="edit-id" value="">
+
+    <!-- Name -->
+    <div>
+      <p class="field-label">Name der Pflanze</p>
+      <input type="text" class="input-text" id="plant-name" placeholder="z. B. Monstera, Basilikum …" maxlength="40">
+    </div>
+
+    <!-- Icon -->
+    <div>
+      <p class="field-label">Symbol wählen</p>
+      <div class="icon-grid" id="icon-grid"></div>
+    </div>
+
+    <!-- Interval -->
+    <div>
+      <p class="field-label">Gieß-Intervall</p>
+      <div class="interval-row">
+        <button class="interval-btn" onclick="changeInterval(-1)" aria-label="Verringern">−</button>
+        <span class="interval-value" id="interval-display">7</span>
+        <span class="interval-unit">Tage</span>
+        <button class="interval-btn" onclick="changeInterval(1)" aria-label="Erhöhen">+</button>
+      </div>
+      <div class="quick-chips">
+        <button class="chip" onclick="setInterval(1)">Täglich</button>
+        <button class="chip" onclick="setInterval(2)">2 Tage</button>
+        <button class="chip" onclick="setInterval(3)">3 Tage</button>
+        <button class="chip" onclick="setInterval(7)">Wöchentlich</button>
+        <button class="chip" onclick="setInterval(14)">2 Wochen</button>
+        <button class="chip" onclick="setInterval(30)">Monatlich</button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div>
+      <p class="field-label">Notizen (optional)</p>
+      <textarea class="input-textarea" id="plant-notes" placeholder="Besondere Pflegehinweise …" rows="3"></textarea>
+    </div>
+
+    <button class="submit-btn" onclick="savePlant()" id="save-btn">Pflanze speichern</button>
+  </div>
+</section>
+
+<!-- Toast -->
+<div class="toast" id="toast">✓ Gespeichert</div>
+
+<script>
+// ════════════════════════════════ ICONS
+const ICONS = [
+  { id:'plant1', label:'Monstera', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 34V18" stroke="#4a7c59" stroke-width="2" stroke-linecap="round"/><path d="M20 18C20 8 8 4 4 2C8 10 14 16 20 18Z" fill="#4a7c59" opacity=".8"/><path d="M20 18C20 8 32 4 36 2C32 10 26 16 20 18Z" fill="#4a7c59" opacity=".6"/><path d="M20 26C20 19 12 15 8 10C13 13 20 19 20 26Z" fill="#4a7c59" opacity=".5"/><path d="M20 26C20 19 28 15 32 10C27 13 20 19 20 26Z" fill="#4a7c59" opacity=".4"/></svg>` },
+  { id:'plant2', label:'Kaktus', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="8" width="8" height="26" rx="4" fill="#4a7c59"/><rect x="8" y="16" width="8" height="14" rx="4" fill="#4a7c59" opacity=".8"/><rect x="24" y="19" width="8" height="11" rx="4" fill="#4a7c59" opacity=".7"/><line x1="12" y1="23" x2="16" y2="23" stroke="#4a7c59" stroke-width="1.5"/><line x1="24" y1="26" x2="28" y2="26" stroke="#4a7c59" stroke-width="1.5"/><rect x="14" y="34" width="12" height="4" rx="2" fill="#8b6a4a" opacity=".5"/></svg>` },
+  { id:'plant3', label:'Blume', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="17" r="4" fill="#f5c842"/><ellipse cx="20" cy="10" rx="3.5" ry="5" fill="#e87d7d" opacity=".85"/><ellipse cx="20" cy="10" rx="3.5" ry="5" fill="#e87d7d" opacity=".85" transform="rotate(60 20 17)"/><ellipse cx="20" cy="10" rx="3.5" ry="5" fill="#e87d7d" opacity=".85" transform="rotate(120 20 17)"/><ellipse cx="20" cy="10" rx="3.5" ry="5" fill="#e87d7d" opacity=".7" transform="rotate(180 20 17)"/><ellipse cx="20" cy="10" rx="3.5" ry="5" fill="#e87d7d" opacity=".7" transform="rotate(240 20 17)"/><ellipse cx="20" cy="10" rx="3.5" ry="5" fill="#e87d7d" opacity=".7" transform="rotate(300 20 17)"/><path d="M20 21V34" stroke="#4a7c59" stroke-width="2" stroke-linecap="round"/><path d="M20 28C20 24 15 22 13 20C15 24 18 27 20 28Z" fill="#4a7c59" opacity=".6"/></svg>` },
+  { id:'plant4', label:'Sukkul.', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="20" cy="22" rx="7" ry="8" fill="#6db87a"/><ellipse cx="12" cy="24" rx="5" ry="6" fill="#5aad6b" transform="rotate(-15 12 24)"/><ellipse cx="28" cy="24" rx="5" ry="6" fill="#5aad6b" transform="rotate(15 28 24)"/><ellipse cx="15" cy="20" rx="3.5" ry="5" fill="#7cc68a" transform="rotate(-25 15 20)"/><ellipse cx="25" cy="20" rx="3.5" ry="5" fill="#7cc68a" transform="rotate(25 25 20)"/><rect x="14" y="32" width="12" height="4" rx="2" fill="#8b6a4a" opacity=".5"/></svg>` },
+  { id:'plant5', label:'Bambus', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="6" width="5" height="28" rx="2.5" fill="#4a7c59"/><rect x="20" y="9" width="5" height="22" rx="2.5" fill="#5a9469"/><line x1="15" y1="13" x2="20" y2="13" stroke="#3a6b48" stroke-width="1.5"/><line x1="15" y1="20" x2="20" y2="20" stroke="#3a6b48" stroke-width="1.5"/><line x1="15" y1="27" x2="20" y2="27" stroke="#3a6b48" stroke-width="1.5"/><line x1="20" y1="16" x2="25" y2="16" stroke="#4a8459" stroke-width="1.5"/><line x1="20" y1="23" x2="25" y2="23" stroke="#4a8459" stroke-width="1.5"/><path d="M15 13C11 10 8 8 8 6" stroke="#4a7c59" stroke-width="1.5" stroke-linecap="round"/><path d="M25 16C29 13 32 11 34 9" stroke="#5a9469" stroke-width="1.5" stroke-linecap="round"/></svg>` },
+  { id:'plant6', label:'Orchidee', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 34V22" stroke="#4a7c59" stroke-width="2" stroke-linecap="round"/><ellipse cx="20" cy="16" rx="5" ry="7" fill="#c97dc5" opacity=".8"/><ellipse cx="14" cy="14" rx="4" ry="6" fill="#c97dc5" opacity=".6" transform="rotate(-30 14 14)"/><ellipse cx="26" cy="14" rx="4" ry="6" fill="#c97dc5" opacity=".6" transform="rotate(30 26 14)"/><circle cx="20" cy="16" r="2.5" fill="#f5e4f5"/><circle cx="20" cy="16" r="1" fill="#c97dc5"/></svg>` },
+  { id:'plant7', label:'Farn', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 34C20 20 10 12 6 6" stroke="#4a7c59" stroke-width="2" stroke-linecap="round"/><path d="M20 34C20 20 30 12 34 6" stroke="#4a7c59" stroke-width="2" stroke-linecap="round" opacity=".7"/><path d="M13 10C13 14 10 17 8 18" stroke="#5a9469" stroke-width="1.5" stroke-linecap="round" opacity=".8"/><path d="M17 16C17 20 14 23 12 24" stroke="#5a9469" stroke-width="1.5" stroke-linecap="round" opacity=".7"/><path d="M27 10C27 14 30 17 32 18" stroke="#5a9469" stroke-width="1.5" stroke-linecap="round" opacity=".8"/><path d="M23 16C23 20 26 23 28 24" stroke="#5a9469" stroke-width="1.5" stroke-linecap="round" opacity=".7"/></svg>` },
+  { id:'plant8', label:'Baum', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="20" cy="16" rx="13" ry="12" fill="#4a7c59" opacity=".85"/><ellipse cx="15" cy="12" rx="9" ry="8" fill="#5a9469" opacity=".7"/><rect x="17" y="26" width="6" height="10" rx="2" fill="#8b6a4a" opacity=".7"/></svg>` },
+  { id:'plant9', label:'Palme', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 36C21 28 22 20 20 12" stroke="#8b6a4a" stroke-width="3" stroke-linecap="round"/><path d="M20 14C20 8 10 4 6 2C10 8 14 12 20 14Z" fill="#4a7c59"/><path d="M20 14C20 8 30 4 34 2C30 8 26 12 20 14Z" fill="#4a7c59" opacity=".8"/><path d="M20 14C18 8 10 8 6 8C10 10 16 12 20 14Z" fill="#5a9469" opacity=".7"/><path d="M20 14C22 8 30 8 34 8C30 10 24 12 20 14Z" fill="#5a9469" opacity=".7"/><path d="M20 18C20 14 14 12 10 12C13 14 17 16 20 18Z" fill="#4a7c59" opacity=".6"/></svg>` },
+  { id:'plant10', label:'Kräuter', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 34V20" stroke="#4a7c59" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="14" r="7" fill="#5aad6b" opacity=".8"/><circle cx="13" cy="18" r="5" fill="#4a9460" opacity=".7"/><circle cx="27" cy="18" r="5" fill="#4a9460" opacity=".7"/><circle cx="20" cy="10" r="4" fill="#6db87a" opacity=".6"/></svg>` },
+  { id:'plant11', label:'Aloe', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 34V24" stroke="#4a7c59" stroke-width="2"/><path d="M20 24C20 16 14 10 12 6C16 12 19 18 20 24Z" fill="#5aad6b" stroke="#4a7c59" stroke-width=".5"/><path d="M20 24C20 16 26 10 28 6C24 12 21 18 20 24Z" fill="#5aad6b" stroke="#4a7c59" stroke-width=".5" opacity=".8"/><path d="M20 28C20 22 16 18 14 14C17 20 19 24 20 28Z" fill="#4a9460" opacity=".7"/><path d="M20 28C20 22 24 18 26 14C23 20 21 24 20 28Z" fill="#4a9460" opacity=".7"/></svg>` },
+  { id:'plant12', label:'Efeu', svg:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 8C20 20 10 28 6 36" stroke="#4a7c59" stroke-width="1.5" stroke-linecap="round"/><path d="M20 8C20 20 30 28 34 36" stroke="#4a7c59" stroke-width="1.5" stroke-linecap="round" opacity=".7"/><ellipse cx="10" cy="18" rx="5" ry="4" fill="#5aad6b" opacity=".8" transform="rotate(-20 10 18)"/><ellipse cx="12" cy="28" rx="5" ry="4" fill="#4a7c59" opacity=".7" transform="rotate(-10 12 28)"/><ellipse cx="30" cy="18" rx="5" ry="4" fill="#5aad6b" opacity=".8" transform="rotate(20 30 18)"/><ellipse cx="28" cy="28" rx="5" ry="4" fill="#4a7c59" opacity=".7" transform="rotate(10 28 28)"/></svg>` },
+];
+
+// ════════════════════════════════ STATE
+let plants = [];
+let selectedIcon = ICONS[0].id;
+let intervalDays = 7;
+let editingId = null;
+let deferredPrompt = null;
+
+// ════════════════════════════════ STORAGE
+const STORAGE_KEY = 'plantTracker_v2';
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) plants = JSON.parse(raw);
+  } catch(e) { plants = []; }
+}
+
+// ════════════════════════════════ SCREENS
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goHome() {
+  showScreen('screen-home');
+  renderHome();
+}
+
+function openAdd(id = null) {
+  editingId = id;
+  const title = document.getElementById('add-screen-title');
+
+  if (id) {
+    const p = plants.find(x => x.id === id);
+    title.textContent = 'Pflanze bearbeiten';
+    document.getElementById('plant-name').value = p.name;
+    document.getElementById('plant-notes').value = p.notes || '';
+    selectedIcon = p.iconId;
+    intervalDays = p.intervalDays;
+  } else {
+    title.textContent = 'Pflanze hinzufügen';
+    document.getElementById('plant-name').value = '';
+    document.getElementById('plant-notes').value = '';
+    selectedIcon = ICONS[0].id;
+    intervalDays = 7;
+  }
+
+  renderIconGrid();
+  updateIntervalDisplay();
+  showScreen('screen-add');
+}
+
+// ════════════════════════════════ ICON GRID
+function renderIconGrid() {
+  const grid = document.getElementById('icon-grid');
+  grid.innerHTML = ICONS.map(ic => `
+    <button class="icon-option ${ic.id === selectedIcon ? 'selected' : ''}"
+      onclick="selectIcon('${ic.id}')" aria-label="${ic.label}">
+      ${ic.svg}
+      <span class="icon-label">${ic.label}</span>
+    </button>
+  `).join('');
+}
+
+function selectIcon(id) {
+  selectedIcon = id;
+  document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+
+// ════════════════════════════════ INTERVAL
+function updateIntervalDisplay() {
+  document.getElementById('interval-display').textContent = intervalDays;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  const vals = [1,2,3,7,14,30];
+  const chips = document.querySelectorAll('.chip');
+  vals.forEach((v,i) => { if (v === intervalDays) chips[i].classList.add('active'); });
+}
+
+function changeInterval(delta) {
+  intervalDays = Math.max(1, Math.min(365, intervalDays + delta));
+  updateIntervalDisplay();
+}
+
+function setInterval(v) {
+  intervalDays = v;
+  updateIntervalDisplay();
+}
+
+// ════════════════════════════════ SAVE PLANT
+function savePlant() {
+  const name = document.getElementById('plant-name').value.trim();
+  if (!name) {
+    document.getElementById('plant-name').focus();
+    shakeName();
+    return;
+  }
+
+  const notes = document.getElementById('plant-notes').value.trim();
+  const icon = ICONS.find(i => i.id === selectedIcon) || ICONS[0];
+
+  if (editingId) {
+    const idx = plants.findIndex(p => p.id === editingId);
+    if (idx !== -1) {
+      plants[idx] = { ...plants[idx], name, iconId: icon.id, iconSvg: icon.svg, intervalDays, notes };
+    }
+  } else {
+    plants.push({
+      id: crypto.randomUUID(),
+      name, iconId: icon.id, iconSvg: icon.svg,
+      intervalDays, notes,
+      lastWatered: Date.now(),
+      createdAt: Date.now()
+    });
+  }
+
+  save();
+  scheduleAllNotifications();
+  showToast(editingId ? '✓ Pflanze aktualisiert' : '🌱 Pflanze angelegt');
+  goHome();
+}
+
+function shakeName() {
+  const el = document.getElementById('plant-name');
+  el.style.borderColor = 'var(--danger)';
+  el.style.animation = 'none';
+  requestAnimationFrame(() => {
+    el.style.transition = 'border-color .3s';
+    setTimeout(() => { el.style.borderColor = ''; }, 1200);
+  });
+}
+
+// ════════════════════════════════ WATER PLANT
+function waterPlant(id, e) {
+  e.stopPropagation();
+  const p = plants.find(x => x.id === id);
+  if (!p) return;
+  p.lastWatered = Date.now();
+  save();
+  renderHome();
+  scheduleNotifForPlant(p);
+  showToast('💧 Gegossen!');
+}
+
+// ════════════════════════════════ DELETE
+function deletePlant(id, e) {
+  e.stopPropagation();
+  if (!confirm('Pflanze wirklich löschen?')) return;
+  plants = plants.filter(p => p.id !== id);
+  save();
+  renderHome();
+  showToast('🗑 Gelöscht');
+}
+
+// ════════════════════════════════ RENDER HOME
+function getDaysLeft(p) {
+  const elapsed = (Date.now() - p.lastWatered) / 86400000;
+  return p.intervalDays - elapsed;
+}
+
+function renderHome() {
+  const list = document.getElementById('plants-list');
+  const empty = document.getElementById('empty-state');
+  const statsRow = document.getElementById('stats-row');
+
+  if (plants.length === 0) {
+    list.innerHTML = '';
+    list.appendChild(empty);
+    empty.style.display = 'flex';
+    statsRow.style.display = 'none';
+    document.getElementById('home-subtitle').textContent = 'Alle Pflanzen auf einem Blick';
+    return;
+  }
+
+  empty.style.display = 'none';
+  if (!list.contains(empty)) list.innerHTML = '';
+  else list.removeChild(empty);
+
+  // Stats
+  const dueNow = plants.filter(p => getDaysLeft(p) <= 0).length;
+  const dueSoon = plants.filter(p => { const d = getDaysLeft(p); return d > 0 && d <= 2; }).length;
+  statsRow.style.display = 'flex';
+  statsRow.innerHTML = `
+    <div class="stat-chip"><span class="stat-dot" style="background:#4a7c59"></span>${plants.length} Pflanzen</div>
+    ${dueNow > 0 ? `<div class="stat-chip"><span class="stat-dot" style="background:var(--danger)"></span>${dueNow} fällig</div>` : ''}
+    ${dueSoon > 0 ? `<div class="stat-chip"><span class="stat-dot" style="background:var(--warn)"></span>${dueSoon} bald fällig</div>` : ''}
+  `;
+
+  const subtitle = dueNow > 0
+    ? `${dueNow} Pflanze${dueNow>1?'n':''} muss gegossen werden`
+    : dueSoon > 0
+    ? `${dueSoon} Pflanze${dueSoon>1?'n':''} bald gießen`
+    : 'Alle Pflanzen sind versorgt ✓';
+  document.getElementById('home-subtitle').textContent = subtitle;
+
+  const sorted = [...plants].sort((a,b) => getDaysLeft(a) - getDaysLeft(b));
+
+  list.innerHTML = sorted.map(p => {
+    const daysLeft = getDaysLeft(p);
+    const pct = Math.max(0, Math.min(1, daysLeft / p.intervalDays));
+    const cls = daysLeft <= 0 ? 'danger' : daysLeft <= 2 ? 'warn' : '';
+    const statusText = daysLeft <= 0
+      ? '💧 Gießen überfällig!'
+      : daysLeft <= 1
+      ? `Heute oder morgen gießen`
+      : `In ${Math.ceil(daysLeft)} Tag${Math.ceil(daysLeft)===1?'':'en'} gießen`;
+
+    // SVG ring
+    const r = 17, circ = 2*Math.PI*r;
+    const dash = circ * pct;
+
+    return `
+      <article class="plant-card ${cls}" onclick="openAdd('${p.id}')">
+        <div class="plant-icon-wrap">${p.iconSvg}</div>
+        <div class="plant-info">
+          <div class="plant-name">${escHtml(p.name)}</div>
+          <div class="plant-status ${cls}">${statusText}</div>
+          ${p.notes ? `<div class="plant-status" style="margin-top:2px;font-size:12px">${escHtml(p.notes.slice(0,40))}${p.notes.length>40?'…':''}</div>` : ''}
+        </div>
+        <div class="plant-progress-ring">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle class="progress-track" cx="20" cy="20" r="${r}"/>
+            <circle class="progress-fill" cx="20" cy="20" r="${r}"
+              stroke-dasharray="${dash} ${circ}"
+              stroke-dashoffset="0"/>
+          </svg>
+        </div>
+        <div class="plant-actions" onclick="event.stopPropagation()">
+          <button class="water-btn" onclick="waterPlant('${p.id}',event)" title="Jetzt gießen" aria-label="Pflanze gießen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C12 2 5 10 5 15a7 7 0 0014 0C19 10 12 2 12 2Z" fill="#4a7c59" opacity=".9"/>
+              <path d="M9 16c0 2 1.3 3 3 3" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".6"/>
+            </svg>
+          </button>
+          <button class="delete-btn" onclick="deletePlant('${p.id}',event)" title="Löschen" aria-label="Pflanze löschen">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#c0604a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </article>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════ TOAST
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ════════════════════════════════ PWA / INSTALL
+function createManifest() {
+  const manifest = {
+    name: 'Pflanzenpflege',
+    short_name: 'Pflanzen',
+    description: 'Dein persönlicher Pflanzen Gieß-Tracker',
+    start_url: '.',
+    display: 'standalone',
+    background_color: '#f8f7f4',
+    theme_color: '#f8f7f4',
+    icons: [
+      { src: generateIcon(192), sizes: '192x192', type: 'image/png' },
+      { src: generateIcon(512), sizes: '512x512', type: 'image/png' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  document.getElementById('manifest-link').setAttribute('href', url);
+  document.getElementById('manifest-link').setAttribute('rel', 'manifest');
+}
+
+function generateIcon(size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#f8f7f4';
+  ctx.fillRect(0,0,size,size);
+  const s = size/40;
+  ctx.fillStyle = '#4a7c59';
+  // Simple plant icon
+  ctx.beginPath();
+  ctx.ellipse(20*s,16*s,13*s,12*s,0,0,2*Math.PI);
+  ctx.fill();
+  ctx.fillStyle = '#f8f7f4';
+  ctx.fillRect(17*s,26*s,6*s,14*s);
+  ctx.fillStyle = '#8b6a4a';
+  ctx.beginPath();
+  ctx.roundRect(15*s,26*s,10*s,8*s,3*s);
+  ctx.fill();
+  return canvas.toDataURL('image/png');
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  const slot = document.getElementById('install-banner-slot');
+  if (slot.innerHTML) return;
+  slot.innerHTML = `
+    <div class="install-banner">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="8" fill="#e8f0eb"/>
+        <path d="M14 6C14 6 8 13 8 17a6 6 0 0012 0C20 13 14 6 14 6Z" fill="#4a7c59" opacity=".85"/>
+      </svg>
+      <p>Installiere die App für den schnellen Zugriff vom Homescreen.</p>
+      <button onclick="installApp()">Installieren</button>
+      <button class="install-dismiss" onclick="this.closest('.install-banner').remove()">✕</button>
+    </div>
+  `;
+}
+
+async function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  if (outcome === 'accepted') {
+    document.getElementById('install-banner-slot').innerHTML = '';
+    showToast('🎉 App installiert!');
+  }
+}
+
+// ════════════════════════════════ SERVICE WORKER
+function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  const sw = `
+const CACHE='plant-tracker-v1';
+const FILES=['./'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
+  `;
+  const blob = new Blob([sw], {type:'application/javascript'});
+  const url = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(() => {});
+}
+
+// ════════════════════════════════ NOTIFICATIONS
+const NOTIF_KEY = 'plantTracker_notifTimers';
+let notifTimers = {};
+
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const result = await Notification.requestPermission();
+  return result === 'granted';
+}
+
+function sendNotification(plant) {
+  if (Notification.permission !== 'granted') return;
+  const n = new Notification('💧 Zeit zum Gießen!', {
+    body: `${plant.name} muss jetzt gegossen werden.`,
+    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="%23f8f7f4"/><path d="M32 8C32 8 16 26 16 38a16 16 0 0032 0C48 26 32 8 32 8Z" fill="%234a7c59"/></svg>',
+    badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="%234a7c59"/></svg>',
+    tag: `plant-${plant.id}`,
+    renotify: true,
+    silent: false
+  });
+  n.onclick = () => { window.focus(); n.close(); };
+}
+
+function scheduleNotifForPlant(plant) {
+  // Clear any existing timer for this plant
+  if (notifTimers[plant.id]) {
+    clearTimeout(notifTimers[plant.id]);
+    delete notifTimers[plant.id];
+  }
+
+  const msPerDay = 86400000;
+  const elapsed = Date.now() - plant.lastWatered;
+  const totalMs = plant.intervalDays * msPerDay;
+  const msUntilDue = totalMs - elapsed;
+
+  if (msUntilDue <= 0) {
+    // Already overdue — notify immediately (once per app session)
+    const sentKey = `notif_sent_${plant.id}_${plant.lastWatered}`;
+    if (!sessionStorage.getItem(sentKey)) {
+      sessionStorage.setItem(sentKey, '1');
+      sendNotification(plant);
+    }
+  } else if (msUntilDue < 7 * 24 * 3600 * 1000) {
+    // Schedule only if within 7 days (setTimeout max reliable range)
+    notifTimers[plant.id] = setTimeout(() => {
+      sendNotification(plant);
+      delete notifTimers[plant.id];
+    }, msUntilDue);
+  }
+}
+
+function scheduleAllNotifications() {
+  plants.forEach(p => scheduleNotifForPlant(p));
+}
+
+async function initNotifications() {
+  if (!('Notification' in window)) return;
+
+  const granted = await requestNotifPermission();
+  if (!granted) return;
+
+  scheduleAllNotifications();
+}
+
+// ════════════════════════════════ AUTO REFRESH (every minute)
+setInterval(() => {
+  if (document.getElementById('screen-home').classList.contains('active')) {
+    renderHome();
+  }
+  // Re-check overdue plants every minute
+  scheduleAllNotifications();
+}, 60000);
+
+// ════════════════════════════════ INIT
+load();
+createManifest();
+registerSW();
+renderHome();
+initNotifications();
+</script>
+</body>
+</html>

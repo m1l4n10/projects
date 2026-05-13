@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>John Pork is Calling...</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+    <div id="overlay">
+        <div class="tap-hint">Tap to start...</div>
+    </div>
+
+    <div id="end-screen" style="display: none;">
+        <h1 id="end-message">You have ended the call</h1>
+        <button id="close-btn">Close</button>
+    </div>
+
+    <h1 id="status-text">John Pork is calling</h1>
+
+    <div class="image-container">
+        <img id="pork-image" src="assets/johnpork/1.jpg" alt="John Pork">
+    </div>
+
+    <div class="button-row">
+        <button id="decline-btn" class="btn">
+            <svg class="phone-icon decline-icon" viewBox="0 0 24 24">
+                <path d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z" />
+            </svg>
+        </button>
+
+        <button id="accept-btn" class="btn">
+            <svg class="phone-icon" viewBox="0 0 24 24">
+                <path d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z" />
+            </svg>
+        </button>
+    </div>
+
+    <audio id="ringtone" loop>
+        <source src="assets/audio/ringtone.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="assets/script.js"></script>
+</body>
+</html>
